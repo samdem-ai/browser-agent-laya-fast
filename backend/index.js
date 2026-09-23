@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer-core';
 import express from 'express';
 import cors from 'cors';
+import axios from 'axios';
 
 const app = express();
 app.use(cors());
@@ -64,12 +65,14 @@ const runTask = async (url, goal, taskId) => {
 
     const interactiveRoles = new Set(['button', 'link', 'textbox', 'combobox', 'checkbox', 'radio','label']);
     console.log(nodes)
+    console.log(nodes)
     const candidates = nodes
       .filter(n => interactiveRoles.has(n.role?.value) && !n.ignored)
       .map(n => ({
         backendNodeId: n.backendDOMNodeId,
         role: n.role.value,
         name: n.name?.value || '',
+        formattedValue: `[${n.backendDOMNodeId.toString()}] ${n.role.value}: ${n.name?.value || ''}`,
       }));
 
     console.log(candidates);
@@ -77,7 +80,17 @@ const runTask = async (url, goal, taskId) => {
 
 
   await browser.disconnect();
-  console.log(candidates);
+  const componentsFormatted = candidates.map(c => c.formattedValue).join('\n');
+  console.log(`Sending the following components to the agent for task ${taskId}:\n${componentsFormatted}`);
+  axios.post('http://localhost:5000/agent', {
+    taskId,
+    components: candidates,
+    goal: goal
+  }).then((response) => {
+    console.log(`Agent response for task ${taskId}:`, response.data);
+  }).catch((error) => {
+    console.error(`Error sending data to agent for task ${taskId}:`, error.message);
+  });
   return candidates;
 
 };

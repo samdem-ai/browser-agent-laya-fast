@@ -1,20 +1,23 @@
 import flask
+from laya_agent import run_agent
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
-app.run(host='0.0.0.0', port=5000)
-app.route('/api/run_task', methods=['POST'])
+
+@app.route('/agent', methods=['POST'])
 def run_task():
     data = flask.request.get_json()
-    url = data.get('url')
+    task_id = data.get('taskId')
+    components = data.get('components')
     goal = data.get('goal')
-
-    if not url or not goal:
-        return flask.jsonify({'error': 'Missing url or goal'}), 400
+    print(f"Received request with Task ID: {task_id}, Components: {components}, and Goal: {goal}")
+    if not components or not goal:
+        return flask.jsonify({'error': 'Missing components or goal'}), 400
 
     # Here you would call your backend function to run the task
     # For example, you might use a function like runTask(url, goal)
     # Assuming runTask is an async function, you might need to handle it accordingly
 
     # For demonstration purposes, let's just return a success message
-    return flask.jsonify({'message': 'Task started successfully', 'url': url, 'goal': goal}), 200
+    return flask.jsonify({'message': 'Task started successfully', 'components': components, 'goal': goal}), 200
+
