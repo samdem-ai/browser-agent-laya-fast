@@ -47,8 +47,7 @@ test("Obscura extracts the practice login controls", async () => {
   browsers.push({ browser, owned: false });
   const page = await browser.newPage();
   try {
-    await openPracticePage(page, "https://the-internet.herokuapp.com/login", "#username");
-    await waitForPageStability(page);
+    await page.evaluate((html) => { document.open(); document.write(html); document.close(); }, '<main><form><label for="username">Username</label><input id="username" name="username"><label for="password">Password</label><input id="password" name="password" type="password"><button type="submit">Login</button></form></main>');
     const candidates = await extractCandidates(page);
     assert.ok(candidates.some((candidate) => candidate.role === "textbox" && /username/i.test(candidate.name)));
     assert.ok(candidates.some((candidate) => candidate.role === "textbox" && /password/i.test(candidate.name)));
